@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FDM AI: вики и сравнение компонентов</title>
+<meta name="description" content="Вики и сравнение готовых компонентов для ИИ-сервиса подбора параметров FDM 3D/5D-печати: MCP, слайсеры, мониторинг, парк принтеров.">
+<meta name="theme-color" content="#07090d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307090d'/%3E%3Cpath d='M8 22l8-14 8 14z' fill='none' stroke='%232ee6a6' stroke-width='2.5'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css"></head><body>
+<a class="skip" href="#main">К содержимому</a>
+<header class="top"><div class="top-in"><a class="logo" href="#top">FDM·AI <span>/ wiki</span></a><nav aria-label="Разделы"><a href="#arch">Архитектура</a><a href="#wiki">Вики</a><a href="#compare">Сравнение</a><a href="#builds">Сборки</a><a href="#roadmap">План</a><a href="#gaps">Выводы</a><a href="#sources">Источники</a></nav></div></header>
+<div class="hero" id="top"><div class="hero-in">
+<div class="eyebrow">Хакатон · FDM 3D/5D-печать</div>
+<h1>Умная настройка печати: что уже есть и <span class="grad">чего нет</span></h1>
+<p class="sub">Вики по каждому компоненту будущего сервиса «STL + фото + запрос → параметры → G-код → парк принтеров» и интерактивное сравнение 35 готовых решений.</p>
+<div class="cta"><a class="btn pri" href="#arch">Архитектура</a><a class="btn" href="#compare">Сравнить компоненты</a><a class="btn" href="#wiki">Читать вики</a></div>
+<div class="stats" id="stats"></div></div></div>
+<main id="main">
+<section class="blk" id="takeaways"><div class="sh rv"><div class="eyebrow">Главное</div><h2>Три вывода из исследования</h2></div>
+<div class="grid g3">
+<div class="card k-good rv"><div class="tag"><i></i>Готово</div><h3>Инфраструктура зрелая</h3><div class="big"><span id="tkInfra">–</span><small> / 5 средний итог</small></div><p>Слайсеры в CLI, API принтеров, библиотеки для STL и MCP SDK можно брать готовыми.</p></div>
+<div class="card k-gap rv"><div class="tag"><i></i>Пробел</div><h3>Подбор параметров</h3><div class="big"><span id="tkGap">–</span><small> / 5 средний итог</small></div><p>Самая слабая категория: три подхода есть, но готовых реализаций под цель пользователя мало. Это ядро проекта.</p></div>
+<div class="card k-rival rv"><div class="tag"><i></i>Конкуренты</div><h3>Целого решения нет</h3><div class="big"><span id="tkRival">–</span><small> покрытие у лидера</small></div><p>Лидер по покрытию функций кейса: <strong id="tkRivalName">–</strong>. Следующий результат: <span id="tkRivalNext">–</span>.</p></div>
+</div></section>
+<section class="blk" id="arch"><div class="sh rv"><div class="eyebrow">Архитектура</div><h2>Как собрать систему из готовых блоков</h2><p>Двенадцать шагов от запроса до печати. Цвет бейджа показывает, брать готовое или писать самим.</p></div>
+<div class="legend"><span><i class="dot d-take"></i>Брать готовое</span><span><i class="dot d-part"></i>Частично готово</span><span><i class="dot d-own"></i>Писать самим</span><span><i class="dot d-bonus"></i>Бонус</span></div>
+<div class="flow"><div class="io"><b>Вход</b><span class="chip">STL-модель</span><span class="chip">Фото</span><span class="chip">Текстовый запрос</span><b style="margin-left:auto">Выход</b><span class="chip">Параметры</span><span class="chip">G-код</span><span class="chip">Печать на принтере</span></div><div class="step s-take rv"><span class="badge b-take">Брать</span><h4>Приём запроса</h4><div class="tools">MCP SDK (Python), чат-клиент</div><p>Принимает STL, фото и текст; открывает инструменты LLM.</p><a class="more" href="#wiki-mcp" data-wiki="mcp">Подробнее в вики →</a></div><div class="step s-bonus rv"><span class="badge b-bonus">Бонус</span><h4>Разбор фото и цели</h4><div class="tools">Мультимодальная LLM</div><p>Превращает фото и текст в требования: нагрузка, внешний вид, материал.</p><a class="more" href="#wiki-gen" data-wiki="gen">Подробнее в вики →</a></div><div class="step s-part rv"><span class="badge b-part">Частично</span><h4>Генерация модели</h4><div class="tools">CadQuery / OpenSCAD + LLM; меш-генераторы</div><p>Если STL нет, модель создаётся по запросу; точные размеры даёт код → CAD.</p><a class="more" href="#wiki-gen" data-wiki="gen">Подробнее в вики →</a></div><div class="step s-take rv"><span class="badge b-take">Брать</span><h4>Анализ и починка STL</h4><div class="tools">trimesh, pymeshfix, numpy-stl</div><p>Размеры, герметичность, починка сетки.</p><a class="more" href="#wiki-stl" data-wiki="stl">Подробнее в вики →</a></div><div class="step s-own rv"><span class="badge b-own">Писать самим</span><h4>Анализ геометрии</h4><div class="tools">Свой модуль</div><p>Нависания, тонкие стенки, ориентация: готового модуля не найдено.</p><a class="more" href="#wiki-stl" data-wiki="stl">Подробнее в вики →</a></div><div class="step s-own rv"><span class="badge b-own">Писать самим</span><h4>Подбор параметров</h4><div class="tools">Правила + цикл «слайсер оценивает, LLM корректирует»</div><p>Главное белое пятно рынка и ядро проекта.</p><a class="more" href="#wiki-params" data-wiki="params">Подробнее в вики →</a></div><div class="step s-take rv"><span class="badge b-take">Брать</span><h4>Нарезка</h4><div class="tools">OrcaSlicer / PrusaSlicer (CLI)</div><p>Слайсер запускается без окна, выдаёт G-код.</p><a class="more" href="#wiki-slicers" data-wiki="slicers">Подробнее в вики →</a></div><div class="step s-own rv"><span class="badge b-own">Писать самим</span><h4>Проверка G-кода</h4><div class="tools">Свой модуль</div><p>Границы стола, температуры, аномалии до отправки.</p><a class="more" href="#wiki-slicers" data-wiki="slicers">Подробнее в вики →</a></div><div class="step s-part rv"><span class="badge b-part">Частично</span><h4>Выбор принтера и очередь</h4><div class="tools">SimplyPrint как образец; Moonraker / OctoPrint</div><p>Подбор принтера по столу, материалу и соплу.</p><a class="more" href="#wiki-fleet" data-wiki="fleet">Подробнее в вики →</a></div><div class="step s-take rv"><span class="badge b-take">Брать</span><h4>Отправка и запуск</h4><div class="tools">Moonraker API, OctoPrint REST</div><p>G-код уходит на принтер по HTTP.</p><a class="more" href="#wiki-slicers" data-wiki="slicers">Подробнее в вики →</a></div><div class="step s-part rv"><span class="badge b-part">Частично</span><h4>Мониторинг печати</h4><div class="tools">Obico и камеры</div><p>Детекция «спагетти» и остановка печати.</p><a class="more" href="#wiki-monitor" data-wiki="monitor">Подробнее в вики →</a></div><div class="step s-bonus rv"><span class="badge b-bonus">Бонус</span><h4>5D-рекомендации</h4><div class="tools">Аналитика поверх 5D-слайсеров</div><p>Совет, где непланарная печать даст выигрыш.</p><a class="more" href="#wiki-5d" data-wiki="5d">Подробнее в вики →</a></div></div>
+<p class="note">Разметка — наша оценка по найденным источникам; код проектов не запускался.</p></section>
+<section class="blk" id="wiki"><div class="sh rv"><div class="eyebrow">Вики</div><h2>Статьи по компонентам</h2><p>Девять статей: по каждой есть вывод, таблицы решений и ссылки на источники.</p></div>
+<div class="wiki"><div class="tabs" role="tablist" aria-label="Статьи" aria-orientation="vertical"><button class="tab" role="tab" type="button" data-slug="overview" aria-selected="false"><span>00</span>Обзор</button><button class="tab" role="tab" type="button" data-slug="mcp" aria-selected="false"><span>01</span>MCP-серверы</button><button class="tab" role="tab" type="button" data-slug="params" aria-selected="false"><span>02</span>Подбор параметров</button><button class="tab" role="tab" type="button" data-slug="monitor" aria-selected="false"><span>03</span>Мониторинг и дефекты</button><button class="tab" role="tab" type="button" data-slug="fleet" aria-selected="false"><span>04</span>Парк и очередь</button><button class="tab" role="tab" type="button" data-slug="gen" aria-selected="false"><span>05</span>Генерация моделей</button><button class="tab" role="tab" type="button" data-slug="stl" aria-selected="false"><span>06</span>Анализ и починка STL</button><button class="tab" role="tab" type="button" data-slug="slicers" aria-selected="false"><span>07</span>Слайсеры и API</button><button class="tab" role="tab" type="button" data-slug="5d" aria-selected="false"><span>08</span>5D-печать</button></div><div><article class="panel-art" role="tabpanel" data-slug="overview" hidden><h3>Обзор</h3><div class="pmeta" data-slug="overview"></div><p>Готовых компонентов для кейса много, а цельного решения «STL + фото + запрос → оптимальные параметры → G-код → парк принтеров» мы не нашли; ближайший цельный проект — Kiln. Вики собирает всё найденное по компонентам и по цельным сборкам, чтобы выбрать, что брать, а что писать самим.</p>
+<p>Каждая статья построена одинаково: что это, как работает, что умеет, зрелость и лицензия, ограничения, источники. Оценки в сравнительной таблице (раздел «Сравнение») — по шкале 0–5 по пяти критериям: покрытие кейса, зрелость, открытость и лицензия, интегрируемость в MCP-сервер, подтверждённость данных.</p>
+<p>Ограничения исследования: основа — README, статьи и страницы проектов; код проектов мы не запускали. Данные, которые прочитаны только по пересказу страницы, помечены словом «по пересказу». Часть репозиториев GitHub из рабочей среды недоступна, поэтому для них опираемся на описания на других площадках.</p></article><article class="panel-art" role="tabpanel" data-slug="mcp" hidden><h3>MCP-серверы управления принтерами и слайсерами</h3><div class="pmeta" data-slug="mcp"></div><p>Готовые MCP-серверы уже умеют «дать ИИ руки»: запускать слайсер и командовать принтером. Решения о параметрах при этом принимает подключённая LLM, а не сам сервер (исключение — PrusaMCP с функцией рекомендации профиля).</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Проект</th>
+<th>Что делает</th>
+<th>Принтеры и слайсеры</th>
+<th>Лицензия и зрелость</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://mcpservers.org/ru/servers/DMontgomery40/mcp-3D-printer-server" target="_blank" rel="noopener noreferrer">mcp-3D-printer-server</a></td>
+<td>Инструменты: статус принтера, загрузка G-кода, старт и отмена печати, температура, <code>slice_stl</code>, <code>print_3mf</code>, простые правки STL (<code>scale_stl</code>, <code>lay_flat</code>). Перед стартом печати и нагревом требует подтверждения человека</td>
+<td>OctoPrint, Klipper/Moonraker, Bambu Lab (больше всего проверен), PrusaLink, Duet, Repetier, Creality; PrusaSlicer, Slic3r, OrcaSlicer, CuraEngine, Bambu Studio</td>
+<td>GPL-2.0, npm 1.2.12; тип принтера задаётся переменной, управление парком в описании не показано</td>
+</tr>
+<tr>
+<td><a href="https://cdn.jsdelivr.net/gh/AuraFriday/cura_mcp@main/README.md" target="_blank" rel="noopener noreferrer">Cura MCP</a></td>
+<td>Плагин, через который ИИ управляет Cura: загрузка и поворот моделей, настройки, нарезка, пакетная нарезка, сравнение времени, оптимизация ориентации, база истории печати. Есть сценарии с подтверждением</td>
+<td>Только Cura (5.11+); принтер-бэкенды в README не перечислены</td>
+<td>Проприетарная; требует отдельный MCP-Link; всё локально</td>
+</tr>
+<tr>
+<td><a href="https://glama.ai/mcp/servers/Noosbai/PrusaMCP" target="_blank" rel="noopener noreferrer">PrusaMCP</a></td>
+<td>17 инструментов: анализ сетки, проверка пригодности к печати, <code>recommend_profile</code> (по намерению, соплу, материалу с обоснованием каждой настройки), нарезка, постобработка G-кода, загрузка, обратная связь</td>
+<td>Только PrusaSlicer; PLA, PETG, ABS, ASA, TPU, Nylon, PC; OctoPrint и PrusaConnect</td>
+<td>MIT, v1.0.0 (февраль 2026); в каталоге помечен как неактивный (по пересказу); логика рекомендаций не раскрыта</td>
+</tr>
+<tr>
+<td><a href="https://www.fabbaloo.com/news/ai-agent-3d-printing-project-shows-automated-printer-control" target="_blank" rel="noopener noreferrer">Hermes-Skills (Flashforge)</a></td>
+<td>Навыки для агента Hermes: нарезка в OrcaSlicer, исправление проблем G-кода Flashforge, загрузка и запуск, учёт до 4 катушек; отдельный навык превращает наброски в OpenSCAD</td>
+<td>Только Flashforge AD5X; один принтер, без очереди</td>
+<td>Открытый, бесплатный, демо-проект (сентябрь 2026)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Как это устроено.</strong> Сервер публикует инструменты с описанием, LLM выбирает нужный и передаёт аргументы. Вызов <code>slice_stl</code> запускает консольный слайсер в фоне, а вызовы <code>start_print</code> и <code>get_printer_status</code> — API принтера (OctoPrint, Moonraker и др.). Нарезает модель именно слайсер; разные слайсеры дают разный G-код из-за разных алгоритмов и профилей.</p>
+<p><strong>Что брать.</strong> <code>mcp-3D-printer-server</code> — база для связи с принтерами и слайсерами (но лицензия GPL: лучше запускать как отдельный сервис). PrusaMCP — пример того, как оформить рекомендацию профиля с объяснением. Cura MCP закрыт и привязан к рабочему столу — для серверной сборки не подходит.</p>
+<p><strong>Ограничения.</strong> Автоматический подбор настроек под цель в этих серверах, кроме PrusaMCP, не описан; по печати на нескольких принтерах одновременно данных нет.</p></article><article class="panel-art" role="tabpanel" data-slug="params" hidden><h3>Подбор параметров печати</h3><div class="pmeta" data-slug="params"></div><p>Это главное «белое пятно» рынка: есть три подхода (правила, одноразовый ответ LLM, цикл «слайсер оценивает — LLM корректирует»), но все готовые реализации привязаны к одному слайсеру, а фото как вход есть только у коммерческих сервисов.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Решение</th>
+<th>Как подбирает</th>
+<th>Вход</th>
+<th>Слайсер</th>
+<th>Зрелость</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/html/2603.22118v1" target="_blank" rel="noopener noreferrer">LLMs as Tuning Experts (CMU, 2026)</a></td>
+<td>Слайсер прогоняется в цикле, выдаёт оценку (время, стоимость пластика, штраф за качество) и диагностику; LLM выбирает одну проблему и предлагает правки; байесовская оптимизация настраивает ориентацию и 13 параметров</td>
+<td>LLM видит только диагностику и список допустимых правок, не геометрию</td>
+<td>Слайсер (какой именно, не уточнено), печать на Prusa i3 MK3S</td>
+<td>Исследование; на 100 деталях Thingi10k лучшая конфигурация в 78% случаев против 15% «вероятных провалов» у чат-базовых моделей (по пересказу); код не найден</td>
+</tr>
+<tr>
+<td><a href="https://github.com/pfrankov/slicer-copilot" target="_blank" rel="noopener noreferrer">slicer-copilot</a></td>
+<td>LLM по цели (баланс, прочность, качество, скорость, своя) предлагает правки настроек с пояснением причин; есть <code>--dry-run</code></td>
+<td><code>.3mf</code> Bambu Studio, цель, заметки; в LLM уходит сводка и превью пластины</td>
+<td>Только Bambu Studio</td>
+<td>Apache-2.0, экспериментальный, 12 звёзд, 7 коммитов</td>
+</tr>
+<tr>
+<td><a href="https://glama.ai/mcp/servers/Noosbai/PrusaMCP" target="_blank" rel="noopener noreferrer">PrusaMCP <code>recommend_profile</code></a></td>
+<td>Рекомендация профиля по намерению, соплу, материалу и анализу сетки; с обоснованием, опирается на базу знаний и лимиты скорости материалов</td>
+<td>STL/3MF, намерение, материал</td>
+<td>Только PrusaSlicer</td>
+<td>MIT, v1.0.0; эвристики не раскрыты</td>
+</tr>
+<tr>
+<td><a href="https://hcie.csail.mit.edu/research/slicehub/slicehub.html" target="_blank" rel="noopener noreferrer">SliceHub (MIT CSAIL)</a></td>
+<td>Заранее оценивает время и расход материала при 16 профилях слоя × 16 масштабах; нарезает 10% и досчитывает полиномом; показывает компромиссы в Cura</td>
+<td>STL, принтер, материал, границы времени/материала</td>
+<td>Cura 3.6 plugin</td>
+<td>Прототип; без LLM, без проверки успеха печати</td>
+</tr>
+<tr>
+<td><a href="https://cdn.jsdelivr.net/gh/AuraFriday/cura_mcp@main/README.md" target="_blank" rel="noopener noreferrer">Cura MCP</a></td>
+<td>Нет встроенной логики подбора: LLM сама меняет настройки Cura; встроены ориентация и сравнение времени</td>
+<td>Ввод пользователя</td>
+<td>Cura</td>
+<td>Проприетарный</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Что отличает сильный подход.</strong> Работа CMU не просит LLM «угадать» числа: проверяемый слайсер даёт объективную оценку, LLM объясняет направление поиска, а оптимизатор подбирает значения. Именно это лучший прототип архитектуры для нашего модуля подбора.</p>
+<p><strong>Ограничения.</strong> В CMU оценка «качества» — эвристика, физическая проверка качественная, только некоторые параметры тюнятся. Фото как вход для подбора есть только в коммерческих веб-сервисах ниже и сводится к диагностике уже дефектной печати.</p>
+<p><strong>Дополнительные решения (в основном маркетинговые страницы, метод не раскрыт).</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Решение</th>
+<th>Что делает</th>
+<th>Вход</th>
+<th>Деньги и лицензия</th>
+<th>Ограничения</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://askthenozzle.com/blog/ai-3d-printing-assistant-chat-what-actually-works-and-whats-just-hype/" target="_blank" rel="noopener noreferrer">Ask The Nozzle</a></td>
+<td>Комплект: Diagnose (зрение по фото дефекта + данные принтера и филамента → правки настроек), Pre-flight (правиловая проверка G-кода), чат на базе случаев, вывод <code>.ini</code>-патчей для PrusaSlicer и OrcaSlicer и собственный ATN Slicer (форк OrcaSlicer, AGPLv3)</td>
+<td>Фото, описание проблемы, принтер, филамент</td>
+<td>Кредиты, 30 бесплатных при регистрации</td>
+<td>Статья — блог самого вендора; авторы признают нестабильную точность, перекос в сторону Cura/Ender 3 и слабость на новых случаях</td>
+</tr>
+<tr>
+<td><a href="https://slicefoundry.com/" target="_blank" rel="noopener noreferrer">Slice Foundry</a></td>
+<td>Генератор «оптимизированных» профилей для Cura, Orca, Flash Studio, Prusa, Bambu; «Fix My Print»</td>
+<td>Фото, описание, файл настроек</td>
+<td>Цены и лицензия не указаны</td>
+<td>Маркетинг, метод не раскрыт</td>
+</tr>
+<tr>
+<td><a href="https://www.fabflow.app/labs/ai-fdm-slicer" target="_blank" rel="noopener noreferrer">FabFlow AI FDM Slicer</a></td>
+<td>Онлайн-нарезка с «автоматическими настройками» и оценкой времени и пластика</td>
+<td>STL, 3MF, OBJ; профили Bambu Studio</td>
+<td>Бесплатно</td>
+<td>Не раскрыто, как выбираются параметры; только метаданные страницы</td>
+</tr>
+<tr>
+<td><a href="https://pypi.org/project/sliceoptim" target="_blank" rel="noopener noreferrer">sliceoptim</a></td>
+<td>Байесовская оптимизация (гауссовский процесс) по оценкам качества от пользователя и оценкам времени; без LLM</td>
+<td>Границы параметров, оценки</td>
+<td>Apache-2.0, 0.1.2 (август 2021), бета, один автор</td>
+<td>Работает через Slic3r (libslic3r), тесты только на Linux; есть предупреждение о физическом риске</td>
+</tr>
+</tbody>
+</table></div>
+<p>Страницы minimal3dp.com (OrcaSlicer Expert Assistant) и curaslicers.com запрещают автоматическое чтение, их методы не проверялись.</p></article><article class="panel-art" role="tabpanel" data-slug="monitor" hidden><h3>Мониторинг и обнаружение дефектов</h3><div class="pmeta" data-slug="monitor"></div><p>Здесь готовых решений больше всего: детекторы «спагетти» по камере есть у Obico, OctoEverywhere и SimplyPrint, встроенные системы — у Bambu и Creality, а исследователи CMU показали LLM-супервизора, который ещё и правит параметры на лету.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Решение</th>
+<th>Как работает</th>
+<th>Железо и принтеры</th>
+<th>Деньги и лицензия</th>
+<th>Доказанность</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://www.obico.io/blog/ai-failure-detection-in-3d-printing/" target="_blank" rel="noopener noreferrer">Obico</a></td>
+<td>ML-модели на кадрах с камеры по интервалу, обучены на удачных и неудачных печатях; уведомление или пауза. Nozzle Ninja — камера на сопле, оценка первого слоя A–F</td>
+<td>Klipper и OctoPrint (Creality K1, Sovol SV06/SV07, Elegoo Neptune 4, Qidi X и др.); камера, для самохостинга лучше GPU</td>
+<td>Самохостинг бесплатно, Pro около $4/мес (по обзору 3dprinting.com); «открытый», лицензия в статье не названа</td>
+<td>Цифры вендора: 89,8 млн часов мониторинга, 1 067 608 пойманных сбоев; точность не измерена</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/pdf/2408.14307" target="_blank" rel="noopener noreferrer">LLM-3D Print (CMU)</a></td>
+<td>После каждого слоя пауза, две камеры (сверху и спереди), LLM ищет дефекты и меняет скорость, поток, ретракты и температуру через API принтера; исходный G-код не меняется. Семь модулей (детектор, супервизор, планировщики, исполнители ReAct)</td>
+<td>Klipper + Moonraker + Crowsnest + Mainsail, Ender 5 Plus и Ender 3, две камеры 1080p</td>
+<td>GPT-4o и GPT-4.1 через API, LangChain/LangGraph; код не найден</td>
+<td>В аннотации: экспертный уровень распознавания, раньше инженеров; числа по прочности — по пересказу; 15–45 с на слой; путает капли с паутинкой</td>
+</tr>
+<tr>
+<td>Bambu Lab (встроенная)</td>
+<td>Детекция «спагетти» по последним 10 кадрам, инспекция первого слоя Micro Lidar (X1-Carbon)</td>
+<td>Только свои принтеры</td>
+<td>В цене принтера</td>
+<td>По обзору Obico; лучше работает с включённым светом камеры</td>
+</tr>
+<tr>
+<td>Creality K1 Max (встроенная)</td>
+<td>AI LiDAR и AI-камера</td>
+<td>Только свои</td>
+<td>В цене принтера</td>
+<td>По обзору Obico</td>
+</tr>
+<tr>
+<td><a href="https://www.obico.io/blog/ai-failure-detection-in-3d-printing/" target="_blank" rel="noopener noreferrer">OctoEverywhere Gadget / Nexus AI</a></td>
+<td>OctoEverywhere — безлимитный детект сбоев на бесплатном тарифе (до 3 принтеров); Nexus AI (Fiberpunk) — открытый плагин OctoPrint</td>
+<td>OctoPrint, в том числе Bambu X1/P1/A1 у OctoEverywhere</td>
+<td>Бесплатное до 3 принтеров; платные планы около $3,99–$9,99 в месяц</td>
+<td>По обзору Obico и 3dprinting.com</td>
+</tr>
+<tr>
+<td><a href="https://simplyprint.io/print-farms" target="_blank" rel="noopener noreferrer">SimplyPrint</a></td>
+<td>AI-детект сбоев и проверка очистки стола перед следующей печатью</td>
+<td>Много брендов</td>
+<td>Облако, бесплатно для 1 принтера</td>
+<td>Только заявления вендора</td>
+</tr>
+<tr>
+<td><a href="https://github.com/codeofaxel/Kiln" target="_blank" rel="noopener noreferrer">Kiln</a></td>
+<td>Снимки с камеры (<code>kiln snapshot</code>, <code>monitor_print</code>), «автоматическое восстановление после сбоев», возобновление с того же слоя; анализ изображений искусственным интеллектом в README не описан</td>
+<td>Bambu, Moonraker, OctoPrint и др.</td>
+<td>AGPL-3.0, часть функций в платных уровнях</td>
+<td>README не показывает метрик</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Главный вывод.</strong> Для нашего проекта мониторинг лучше подключать (Obico с самохостингом или встроенные детекторы принтеров), а своё делать только слой LLM-реакции по идее CMU: детектор обнаружил → сервис решил, пауза или правка параметров.</p>
+<p><strong>Ограничения.</strong> Независимых тестов точности (ложные срабатывания, пропуски) у коммерческих решений не найдено; все цифры из блогов самих вендоров. В закрытых системах Bambu и Creality мало возможностей настройки.</p></article><article class="panel-art" role="tabpanel" data-slug="fleet" hidden><h3>Управление парком принтеров и очередь</h3><div class="pmeta" data-slug="fleet"></div><p>Единственный найденный продукт с автоматическим подбором принтера под задачу — SimplyPrint (облачный, платный, с REST API и MCP-сервером по заявлению вендора); открытые альтернативы либо управляют принтерами вручную, либо ограничены одним брендом.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Решение</th>
+<th>Что умеет</th>
+<th>Принтеры</th>
+<th>Деньги и открытость</th>
+<th>Заметки</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://simplyprint.io/print-farms" target="_blank" rel="noopener noreferrer">SimplyPrint</a></td>
+<td>Общая очередь, запуск следующего задания одним кликом, AutoPrint, «умная маршрутизация» (задание попадает на принтер с нужным материалом, соплом и столом), права команды, техобслуживание, REST API + webhooks, Zapier/n8n, MCP-сервер, AI-детект сбоев</td>
+<td>130+ брендов, 610+ моделей (Bambu, Klipper, Prusa и др.)</td>
+<td>Облако, бесплатно для 1 принтера, очередь на Pro и выше; цены не проверялись</td>
+<td>Подбор работает на тегах, которые задаёт пользователь; маркетинговая страница самого вендора</td>
+</tr>
+<tr>
+<td><a href="https://www.pistack.xyz/posts/2026-06-06-self-hosted-3d-printer-farm-management-octofarm-obico-octoprint/" target="_blank" rel="noopener noreferrer">OctoFarm</a></td>
+<td>Панель нескольких OctoPrint, ручное назначение заданий</td>
+<td>OctoPrint (Marlin, Klipper, RepRapFirmware и др.)</td>
+<td>Бесплатно, AGPL-3.0, самохостинг</td>
+<td>Замедляется примерно свыше 12 принтеров; SimplyPrint пишет, что последний релиз был в 2022 году (слова конкурента)</td>
+</tr>
+<tr>
+<td><a href="https://www.pistack.xyz/posts/2026-06-06-self-hosted-3d-printer-farm-management-octofarm-obico-octoprint/" target="_blank" rel="noopener noreferrer">Obico Server</a></td>
+<td>Детект сбоев плюс очередь; в таблице статьи названа «автоматической», без подробностей</td>
+<td>OctoPrint, Klipper, Bambu</td>
+<td>Бесплатно при самохостинге</td>
+<td>Статья с партнёрскими ссылками; для GPU-режима нужна видеокарта</td>
+</tr>
+<tr>
+<td>3DPrinterOS, AstroPrint, Printago</td>
+<td>Очереди, расписание, многопользовательский доступ (по 3dprinting.com); Printago, по данным SimplyPrint, — автоматизация заказов Etsy/Shopify</td>
+<td>—</td>
+<td>—</td>
+<td>Подробно не читали; AstroPrint по словам SimplyPrint перезапускается у новых владельцев</td>
+</tr>
+<tr>
+<td>Bambu Farm Manager, Bambuddy, Printerhive</td>
+<td>Флот для Bambu: Farm Manager — бесплатный, только Windows и LAN; Bambuddy — открытый самохостинг; Printerhive — до 30 принтеров с калькулятором заказов</td>
+<td>Bambu</td>
+<td>Разное</td>
+<td>Описания — словами SimplyPrint</td>
+</tr>
+<tr>
+<td>Kiln</td>
+<td><code>kiln print *.gcode --queue</code>; парк — в платном уровне Business</td>
+<td>OctoPrint, Moonraker, Bambu и др.</td>
+<td>AGPL-3.0 + платные уровни</td>
+<td>Выбор принтера по материалу в README не описан</td>
+</tr>
+<tr>
+<td>Moonraker + Mainsail/Fluidd</td>
+<td>API-сервер и веб-интерфейс для Klipper; нужны для управления по сети</td>
+<td>Klipper</td>
+<td>Бесплатно</td>
+<td>Очереди по материалу нет, это только связь</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Что означает «умный выбор».</strong> В SimplyPrint принтер выбирается по правилам (материал, сопло, стол, размер и температуры), а не по данным LLM или анализу геометрии детали.</p>
+<p><strong>Главный вывод.</strong> Выбор принтера по правилам — задача на день работы: таблица принтеров (размер стола, сопло, загруженный материал, статус) и фильтр по этим полям. Реальная сложность — связь с разными API принтеров (OctoPrint, Moonraker, Bambu, PrusaLink), а не сам алгоритм распределения.</p>
+<p><strong>Ограничения.</strong> Большинство сравнений в источниках сделаны самим SimplyPrint, то есть стороной, заинтересованной в выводе. Данные форума Bambu Lab про управление несколькими принтерами устарели (2023–2024).</p></article><article class="panel-art" role="tabpanel" data-slug="gen" hidden><h3>Генерация 3D-моделей по тексту и фото</h3><div class="pmeta" data-slug="gen"></div><p>Есть два лагеря: меш-генераторы (быстрые, для фигурок, но без точных размеров) и «код → CAD» (LLM пишет OpenSCAD или CadQuery, точные размеры, но только простые детали). Для функциональных деталей подходит второй лагерь.</p>
+<p><strong>Меш-генераторы (текст и фото → сетка)</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Решение</th>
+<th>Что умеет</th>
+<th>Цена и лицензия</th>
+<th>Заметки</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://www.meshy.ai/3d-printing" target="_blank" rel="noopener noreferrer">Meshy</a></td>
+<td>Текст или фото → модель примерно за минуту; заявлены проверка герметичности и толщины стенок, авторемонт, разбиение крупных моделей, цвета для Bambu AMS; экспорт STL/3MF/OBJ; плагины для Bambu Studio, OrcaSlicer, Cura и др.</td>
+<td>Бесплатные кредиты, платные планы (около $20/мес Pro по обзору); условия коммерческого использования в источниках противоречат друг другу</td>
+<td>Маркетинг вендора; заявленные 97% проходят слайсер — цифра вендора</td>
+</tr>
+<tr>
+<td><a href="https://filamentfeed.com/article/meshy-ai-text-to-3d-makerworld-june-2026" target="_blank" rel="noopener noreferrer">Bambu MakerWorld × Meshy</a></td>
+<td>Описать объект или загрузить фото в браузере, получить модель за 30–60 с, скачать STL/3MF или отправить на принтер Bambu</td>
+<td>Доступ из браузера</td>
+<td>Масштаб произвольный, плохо для сопряжённых и подвижных деталей</td>
+</tr>
+<tr>
+<td><a href="https://3dprinting.com/software-guides/ai-3d-model-generators/" target="_blank" rel="noopener noreferrer">Tripo, Rodin, Hunyuan3D, Sloyd, Luma Genie</a></td>
+<td>Tripo: STL/3MF, около $12/мес при годовой оплате; Rodin: оплата за скачивание; Hunyuan3D — открытая, запускается локально на GPU; Sloyd — пресет для печати; Luma Genie — бесплатно, концепты</td>
+<td>Цены приблизительные; бесплатные тарифы Meshy и Tripo — некоммерческие</td>
+<td>Обзор отмечает: «почти ни одна не даёт модель без дочистки»: тонкие стенки, нет основания, масштаб произвольный</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Код → CAD (LLM пишет скрипт модели)</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Решение</th>
+<th>Подход</th>
+<th>Выход</th>
+<th>Зрелость</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://printpal.io/resources/cad-agent-but-the-prompts-double" target="_blank" rel="noopener noreferrer">PrintPal CAD agent</a></td>
+<td>Чат-агент пишет параметрический OpenSCAD (BOSL2, MCAD); заявлена проверка печатибельности</td>
+<td>STL, 3MF, STEP</td>
+<td>Промо-страница (2026-08-07), платный (кредиты); ограничения не названы</td>
+</tr>
+<tr>
+<td><a href="https://github.com/roberto-ceraolo/text-2-cad" target="_blank" rel="noopener noreferrer">text-2-cad</a></td>
+<td>LLM пишет OpenSCAD, необязательно RAG по документации</td>
+<td>OpenSCAD-код</td>
+<td>13 звёзд, 4 коммита; README: «наивная реализация», только простые формы</td>
+</tr>
+<tr>
+<td><a href="https://zenml.io/llmops-database/llm-powered-3d-model-generation-for-3d-printing" target="_blank" rel="noopener noreferrer">DesignBench (разбор ZenML)</a></td>
+<td>Несколько LLM (GPT-4o, Claude Sonnet 3.5, Llama 3.1 70B) параллельно пишут OpenSCAD</td>
+<td>STL</td>
+<td>Прототип 2024; автор называет пространственное мышление LLM «очень плохим»</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/html/2508.00843v1" target="_blank" rel="noopener noreferrer">Generative AI for CAD Automation (arXiv 2508.00843)</a></td>
+<td>GPT-4 пишет скрипты FreeCAD, ошибки возвращаются в цикл исправления</td>
+<td>FreeCAD-модели</td>
+<td>10 тестов; простые и средние детали получаются, сложные с множеством ограничений — нет</td>
+</tr>
+<tr>
+<td><a href="https://www.getleo.ai/blog/open-source-text-to-cad-tools-free" target="_blank" rel="noopener noreferrer">CadQuery, OpenSCAD, Zoo ML-CAD</a></td>
+<td>CadQuery — BRep, экспорт STEP; OpenSCAD — CSG, STL; Zoo — прямое предсказание сетки, грубо по размерам</td>
+<td>STEP, STL, сетка</td>
+<td>Статья коммерческого вендора (Leo AI), выводы осторожно</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cplanow/Canterbury-Press/blob/main/docs/research/ai-3d-printing-design-guide.md" target="_blank" rel="noopener noreferrer">Canterbury-Press: руководство</a></td>
+<td>Обзор подходов и правил проектирования FDM (нависания 45°, минимальная стенка 0,8 мм, зазор 0,2 мм на сторону)</td>
+<td>—</td>
+<td>Личный репозиторий, 1 звёзда; автор пишет, что готового конвейера OpenSCAD → P1S нет</td>
+</tr>
+<tr>
+<td><a href="https://github.com/codeofaxel/Kiln" target="_blank" rel="noopener noreferrer">Kiln</a></td>
+<td>Текст или набросок → генерация → проверка → нарезка → печать; провайдеры OpenSCAD и Meshy/Tripo/Stability/Gemini; фото только как рельеф на поверхности</td>
+<td>STL, G-код</td>
+<td>AGPL-3.0, без бенчмарков</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Главный вывод.</strong> Для нашего проекта генерация — необязательный бонус: условие кейса даёт готовую STL. Если делать, то функциональные детали — через CadQuery или OpenSCAD с автоматической проверкой сетки, а фотореалистичные фигурки — через внешний сервис (Meshy, Tripo, Hunyuan3D).</p>
+<p><strong>Ограничения.</strong> Ни один измеренный тест пригодности к печати не найден у меш-генераторов: цифры — вендорские. Для «код → CAD» сама проблема — слабое пространственное мышление LLM (в трёх источниках названо прямо). Статья с «69,3% точного совпадения» для Text-to-CadQuery упомянута в обзоре Canterbury, саму статью мы не читали.</p></article><article class="panel-art" role="tabpanel" data-slug="stl" hidden><h3>Анализ и починка STL</h3><div class="pmeta" data-slug="stl"></div><p>Для анализа геометрии и починки сетки есть зрелые библиотеки в открытом доступе; готового модуля «найти нависания, тонкие стенки, подбрать ориентацию» на базе этих библиотек нужно дописывать самим (частично это есть в PrusaMCP, Meshy, Cura MCP).</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Библиотека</th>
+<th>Что умеет</th>
+<th>Лицензия и версия</th>
+<th>Ограничения</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://pypi.org/project/trimesh/" target="_blank" rel="noopener noreferrer">trimesh</a></td>
+<td>Загрузка и анализ сеток: проверка <code>is_watertight</code>, объём и центр масс, разбиение на компоненты, срез плоскостью, простые исправления нормалей и небольших дыр, экспорт STL</td>
+<td>MIT; 5.1.1; статус Beta</td>
+<td>Ремонт только простых дефектов; булевы операции требуют Manifold3D или Blender</td>
+</tr>
+<tr>
+<td><a href="https://pypi.org/project/pymeshfix/" target="_blank" rel="noopener noreferrer">pymeshfix</a></td>
+<td>Ремонт «битых» сеток в единую замкнутую поверхность (обёртка MeshFix): <code>clean_from_file</code>, <code>MeshFix(v, f).repair()</code>, заполнение маленьких границ</td>
+<td>0.18.1; лицензия: в метаданных AGPL-3.0, в README — GPLv3 с коммерческой лицензией; оба варианта «заразные»</td>
+<td>Предполагает одно замкнутое тело; на CAD-сетках может дать грубый результат</td>
+</tr>
+<tr>
+<td><a href="https://pypi.org/project/numpy-stl/" target="_blank" rel="noopener noreferrer">numpy-stl</a></td>
+<td>Чтение и запись STL (бинарный и ASCII), повороты, смещения, массовые свойства (объём, центр тяжести)</td>
+<td>BSD-3-Clause; по данным PyPI JSON версия 4.1.1 (страница проекта читалась как 4.0.1)</td>
+<td>Нет проверки герметичности и ремонта</td>
+</tr>
+<tr>
+<td><a href="https://pypi.org/project/fullcontrol/" target="_blank" rel="noopener noreferrer">FullControl GCode</a></td>
+<td>Не слайсер и STL не читает: описываете траекторию в Python, получаете G-код</td>
+<td>GPLv3; 0.1.2 (2025), один майнтейнер</td>
+<td>Структура репозитория может меняться; подходит для произвольных траекторий, в том числе экспериментов с 5D</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Главный вывод.</strong> Связка trimesh + pymeshfix закрывает проверку и починку; нависания, тонкие стенки и ориентацию считает ваш код поверх них. <strong>Внимание:</strong> pymeshfix имеет копилефт-лицензию (AGPL/GPL), для коммерческого закрытого продукта нужна коммерческая лицензия или другой ремонтер; для хакатона это не проблема.</p>
+<p><strong>Что дописывать самим.</strong> Расчёт углов нависаний (через нормали граней в trimesh), поиск тонких стенок, оценку объёма поддержек и выбор ориентации перебором поворотов.</p></article><article class="panel-art" role="tabpanel" data-slug="slicers" hidden><h3>Слайсеры (CLI) и API принтеров</h3><div class="pmeta" data-slug="slicers"></div><p>Нарезать модель можно без окна слайсера, а отправить G-код — через HTTP API хоста; только точные флаги командной строки нужно сверять на установленной версии.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Инструмент</th>
+<th>Как работать без окна</th>
+<th>Проверено</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://www.orcaslicer.com/wiki/index.html" target="_blank" rel="noopener noreferrer">OrcaSlicer</a></td>
+<td>AGPL-3.0; в вики есть раздел CLI (Mode, Actions, Transform, Misc); отправка заданий на Klipper, PrusaLink, OctoPrint</td>
+<td>Флаги не читали</td>
+</tr>
+<tr>
+<td>PrusaSlicer</td>
+<td>Консольный режим известен, но официальная страница не открылась</td>
+<td>Не проверено</td>
+</tr>
+<tr>
+<td><a href="https://moonraker.readthedocs.io/en/latest/web_api/" target="_blank" rel="noopener noreferrer">Moonraker</a></td>
+<td>Moonraker не режет, принимает G-код: <code>POST /server/files/upload</code> (параметр <code>print=true</code> запускает печать), <code>POST /printer/print/start</code>, <code>/pause</code>, <code>/resume</code>, <code>/cancel</code>; очередь заданий — <code>/server/job_queue/*</code>; авторизация <code>X-Api-Key</code> или JWT</td>
+<td>Старт и загрузка — дословно, очередь — из пересказа</td>
+</tr>
+<tr>
+<td><a href="https://docs.octoprint.org/en/main/api/" target="_blank" rel="noopener noreferrer">OctoPrint</a></td>
+<td><code>POST /api/files/local</code> — загрузка (<code>select</code>, <code>print</code>); <code>POST /api/job</code> с <code>{"command":"start"}</code>; <code>GET /api/job</code> — статус; нарезка через плагин слайсера (в документации «единственный поддерживаемый» — Cura); авторизация <code>X-Api-Key</code></td>
+<td>Дословно</td>
+</tr>
+<tr>
+<td>Bambu Lab, PrusaLink, Duet</td>
+<td>Есть собственные протоколы; поддерживаются через mcp-3D-printer-server и Kiln</td>
+<td>Не читали</td>
+</tr>
+</tbody>
+</table></div></article><article class="panel-art" role="tabpanel" data-slug="5d" hidden><h3>5D и непланарная печать</h3><div class="pmeta" data-slug="5d"></div><p>Готового продукта «ИИ подбирает 5D-параметры» не найдено: есть энтузиастские слайсеры, исследовательские работы и один коммерческий принтер за сотни тысяч долларов.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Решение</th>
+<th>Алгоритм</th>
+<th>Железо</th>
+<th>Доступность</th>
+<th>Ограничения</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://www.fabbaloo.com/news/implications-of-the-s4-slicer-nonplanar-3d-printing-for-everyone" target="_blank" rel="noopener noreferrer">S4 Slicer</a></td>
+<td>Модель деформируется до вида без нависаний, режется обычным способом, затем G-код «раздеформируется»; классическая геометрия, без ИИ</td>
+<td>4-осевой Core R-Theta (открытый проект автора)</td>
+<td>Открытый код на GitHub</td>
+<td>Обычный FFF-принтер без нового железа не подойдёт</td>
+</tr>
+<tr>
+<td><a href="https://all3dp.com/4/open-source-5-axis-prusa-upgrade/" target="_blank" rel="noopener noreferrer">Open5x</a></td>
+<td>Непланарный алгоритм в Grasshopper</td>
+<td>Prusa i3 + доп. моторы (оси X, Y, Z, V, U), Duet3D</td>
+<td>Железо открыто; слайсер требует платный Rhino</td>
+<td>Слайсер не открыт; авторы сами пишут о необходимости свободного 5-осевого слайсера</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/pdf/2404.15061" target="_blank" rel="noopener noreferrer">Neural Slicer</a></td>
+<td>Нейросети задают поле поворотов и масштаба, из него получаются кривые слои; оптимизируются отсутствие поддержек, прочность, столкновения; расчёт до 15 минут на RTX 4080</td>
+<td>6-осевая рука ABB IRB 2600 + позиционер (8 степеней свободы)</td>
+<td>Код на момент публикации не опубликован</td>
+<td>Изотропный анализ прочности; глобальные столкновения решаются цёной потери кривизны</td>
+</tr>
+<tr>
+<td><a href="https://github.com/DrEricEbert/Slic3r_NonPlanar_Slicing" target="_blank" rel="noopener noreferrer">Slic3r NonPlanar</a></td>
+<td>Экспериментальные непланарные слои (по тезису Ahlers 2018)</td>
+<td>Обычный 3-осевой FDM (конфиги Ender 3 Pro, Ender 5)</td>
+<td>AGPL-3.0, ветка <code>nonplanar</code>, 78 звёзд</td>
+<td>В README: C++-версия «не умеет генерировать G-код»</td>
+</tr>
+<tr>
+<td><a href="https://3dprintingindustry.com/news/smooth-operation-eliminates-fdm-stair-stepping-in-university-of-hamburg-study-160826/" target="_blank" rel="noopener noreferrer">Hamburg nonplanar (Ahlers)</a></td>
+<td>Верхние поверхности печатаются непланарно с проверкой столкновений головы</td>
+<td>3 оси, Ultimaker 2</td>
+<td>Открытый код (2019)</td>
+<td>Прототип</td>
+</tr>
+<tr>
+<td><a href="https://www.3printr.com/slicer-version-for-non-planar-3d-printing-released-0370841/" target="_blank" rel="noopener noreferrer">PrusaSlicer non-planar fork</a></td>
+<td>Функция непланарной нарезки в PrusaSlicer 2.6 (автор — пользователь EiNSTeiN); задаётся максимальный угол и высота</td>
+<td>3-осевой FDM, нужны обходы по просвету хотэнда</td>
+<td>Windows-сборка, лицензия не указана</td>
+<td>Некоторые модели ненадёжно нарезаются</td>
+</tr>
+<tr>
+<td><a href="https://polen.itu.edu.tr/items/a42ffe7d-2bed-458a-8284-30359a23f8ab" target="_blank" rel="noopener noreferrer">Uni-slice (ITU)</a></td>
+<td>Модульный пайплайн в Grasshopper (плоская и кривая нарезка)</td>
+<td>3-осевой FDM</td>
+<td>Скрипты опубликованы, лицензия не указана</td>
+<td>Магистерская диссертация 2022, без силовых тестов</td>
+</tr>
+<tr>
+<td><a href="https://pypi.org/project/fullcontrol/" target="_blank" rel="noopener noreferrer">FullControl GCode</a></td>
+<td>Ручное описание траекторий на Python</td>
+<td>Разное</td>
+<td>GPLv3</td>
+<td>Не слайсер, STL не читает</td>
+</tr>
+<tr>
+<td>VSHAPER 5AX</td>
+<td>Коммерческий 5-осевой FDM-принтер</td>
+<td>—</td>
+<td>Цена по посту 2022 года — около $300 000</td>
+<td>Данные из одного форумного поста</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Главный вывод.</strong> Полноценная 5D-печать требует специального железа и незрелого слайсера, поэтому для хакатона разумно реализовать только аналитический слой: расчёт нависаний, угла наклона, оценка экономии поддержек и предложение 5D-стратегии для принтеров, которые её умеют, с откатом на обычный 3D-режим.</p>
+<p><strong>Ограничения.</strong> Большинство проектов — учебные или хоббийные; «5D» часто на деле непланарная печать на трёх осях. Важно не путать понятия: непланарные слои могут делаться и без дополнительных осей.</p></article></div></div></section>
+<section class="blk" id="compare"><div class="sh rv"><div class="eyebrow">Сравнение</div><h2>35 компонентов, пять критериев</h2><p>Двигайте веса: итог, места и вердикты пересчитываются на лету. Оценки субъективны, составлены по прочитанным источникам.</p></div>
+<div class="panel"><h3>Веса критериев</h3><div class="wgrid" id="wgrid"></div>
+<div class="thr"><label>Брать, если итог от <input type="number" id="thrTake" min="0" max="5" step="0.1"></label><label>Рассмотреть, если итог от <input type="number" id="thrIdea" min="0" max="5" step="0.1"></label><button type="button" class="btn sm" id="resetW">Сбросить</button></div></div>
+<div class="panel"><h3>Рейтинг</h3><div class="rank" id="rank"></div><p style="margin:14px 0 0"><button type="button" class="btn sm" id="rankAll">Показать все</button></p></div>
+<h3>Итоги по категориям</h3><div class="cards" id="cats"></div>
+<h3>Все компоненты</h3>
+<div class="toolbar"><input type="search" id="q" placeholder="Поиск по названию или лицензии" aria-label="Поиск"><select id="catSel" aria-label="Категория"></select><button type="button" class="btn sm" id="csv">Скачать CSV</button></div>
+<div class="tw"><table id="ct"><thead><tr id="cth"></tr></thead><tbody></tbody></table></div>
+<p class="hint">Нажмите на название, чтобы раскрыть основание оценки; на заголовок колонки — чтобы отсортировать.</p></section>
+<section class="blk" id="builds"><div class="sh rv"><div class="eyebrow">Сборки</div><h2>Цельные решения и конкуренты</h2></div>
+<div class="panel-art" style="margin-bottom:20px"><p>Ни одна из найденных сборок не закрывает кейс целиком; ближе всего — Kiln (цепочка «генерация → нарезка → печать → очередь»), но в открытой документации у него не описаны подбор слайсерных параметров под цель и анализ фото как входа.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Сборка</th>
+<th>STL</th>
+<th>Фото</th>
+<th>Подбор по цели</th>
+<th>Нарезка</th>
+<th>Печать</th>
+<th>Парк</th>
+<th>Мониторинг</th>
+<th>Генерация</th>
+<th>5D</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/codeofaxel/Kiln" target="_blank" rel="noopener noreferrer">Kiln</a></td>
+<td>да</td>
+<td>только рельеф</td>
+<td>частично (материалы)</td>
+<td>да</td>
+<td>да</td>
+<td>частично (платно)</td>
+<td>частично</td>
+<td>да</td>
+<td>нет</td>
+</tr>
+<tr>
+<td><a href="https://mcpservers.org/ru/servers/DMontgomery40/mcp-3D-printer-server" target="_blank" rel="noopener noreferrer">mcp-3D-printer-server</a></td>
+<td>да</td>
+<td>нет</td>
+<td>нет</td>
+<td>да</td>
+<td>да</td>
+<td>не показано</td>
+<td>статус</td>
+<td>нет</td>
+<td>нет</td>
+</tr>
+<tr>
+<td><a href="https://glama.ai/mcp/servers/Noosbai/PrusaMCP" target="_blank" rel="noopener noreferrer">PrusaMCP</a></td>
+<td>да</td>
+<td>нет</td>
+<td>да (профиль)</td>
+<td>да</td>
+<td>через OctoPrint/PrusaConnect</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+</tr>
+<tr>
+<td><a href="https://cdn.jsdelivr.net/gh/AuraFriday/cura_mcp@main/README.md" target="_blank" rel="noopener noreferrer">Cura MCP</a></td>
+<td>да</td>
+<td>нет</td>
+<td>через LLM</td>
+<td>да</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+</tr>
+<tr>
+<td><a href="https://www.fabbaloo.com/news/ai-agent-3d-printing-project-shows-automated-printer-control" target="_blank" rel="noopener noreferrer">Hermes-Skills</a></td>
+<td>да</td>
+<td>нет</td>
+<td>нет</td>
+<td>да</td>
+<td>да (один принтер)</td>
+<td>нет</td>
+<td>нет</td>
+<td>набросок → OpenSCAD</td>
+<td>нет</td>
+</tr>
+<tr>
+<td><a href="https://github.com/pfrankov/slicer-copilot" target="_blank" rel="noopener noreferrer">slicer-copilot</a></td>
+<td>да (.3mf)</td>
+<td>нет</td>
+<td>да</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+</tr>
+<tr>
+<td><a href="https://askthenozzle.com/blog/ai-3d-printing-assistant-chat-what-actually-works-and-whats-just-hype/" target="_blank" rel="noopener noreferrer">Ask The Nozzle</a></td>
+<td>неполно описано</td>
+<td>да (диагностика дефекта)</td>
+<td>да (правки профиля)</td>
+<td>свой ATN Slicer</td>
+<td>нет</td>
+<td>нет</td>
+<td>предпечатная проверка G-кода</td>
+<td>нет</td>
+<td>нет</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/html/2603.22118v1" target="_blank" rel="noopener noreferrer">CMU: LLM Tuning Experts</a></td>
+<td>да</td>
+<td>нет</td>
+<td>да (цикл с оптимизатором)</td>
+<td>в цикле</td>
+<td>контрольные печати</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/pdf/2408.14307" target="_blank" rel="noopener noreferrer">CMU: LLM-3D Print</a></td>
+<td>—</td>
+<td>камеры для контроля</td>
+<td>коррекция на лету</td>
+<td>нет</td>
+<td>да</td>
+<td>нет</td>
+<td>да</td>
+<td>нет</td>
+<td>нет</td>
+</tr>
+<tr>
+<td><a href="https://simplyprint.io/print-farms" target="_blank" rel="noopener noreferrer">SimplyPrint</a></td>
+<td>—</td>
+<td>нет</td>
+<td>нет</td>
+<td>нет</td>
+<td>да</td>
+<td>да (умная маршрутизация)</td>
+<td>AI-детект</td>
+<td>нет</td>
+<td>нет</td>
+</tr>
+<tr>
+<td><a href="https://www.meshy.ai/3d-printing" target="_blank" rel="noopener noreferrer">Meshy</a></td>
+<td>экспорт</td>
+<td>вход для генерации</td>
+<td>нет</td>
+<td>плагины слайсеров</td>
+<td>кнопка «на Bambu»</td>
+<td>нет</td>
+<td>нет</td>
+<td>да</td>
+<td>нет</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Kiln подробнее.</strong> Движок — <a href="https://github.com/codeofaxel/Kiln" target="_blank" rel="noopener noreferrer">github.com/codeofaxel/Kiln</a>, пакет <code>kiln3d</code> 1.4.1.1 на PyPI, AGPL-3.0, 56 звёзд и 2 841 коммит по данным README-страницы. Заявлено: MCP-сервер для изготовления по описанию или наброску; 51 профиль безопасности принтеров, проверка G-кода, сторожевой таймер нагревателя, журнал аудита, возобновление печати с того же слоя, 25 материалов и 45 профилей нити с «рекомендациями по намерению», настроенные профили для 60 моделей принтеров. В README есть внутренние противоречия («908» и «915» инструментов, 68 и 51 профиль), часть функций — в закрытом модуле и платных уровнях, а полная документация на отдельном сайте мы не читали.</p>
+<p><strong>Что умеет Kiln без учёта нашего кейса.</strong> Рельеф из фото и QR-кодов на поверхности модели (подставка с портретом собаки), текст и процедурные текстуры. Это декор, а не анализ фото для настройки печати.</p>
+<p><strong>Критический вывод.</strong> Наша ниша — связка «анализ STL и фото → подбор параметров с проверяемым циклом → парк». Подбор по цели есть у PrusaMCP, slicer-copilot, CMU; фото-диагностика — у Ask The Nozzle и Slice Foundry; парк — у SimplyPrint и частично Kiln. Но вместе в открытом виде этого нет.</p></div>
+<h3>Покрытие функций кейса</h3><p>● есть · ½ частично · ○ нет или в описании не показано. Покрытие — доля из девяти функций.</p>
+<div class="tw"><table id="bt"><thead><tr id="bth"></tr></thead><tbody></tbody></table></div></section>
+<section class="blk" id="roadmap"><div class="sh rv"><div class="eyebrow">План</div><h2>Дорожная карта для хакатона</h2><p>Порядок работ от каркаса к ядру и бонусам.</p></div><div class="road"><div class="phase p1 rv"><div class="ph">Фаза 1</div><h3>Каркас и нарезка</h3><ul><li><span>MCP-сервер на Python SDK<em>чат и инструменты</em></span></li><li><span>Анализ STL через trimesh<em>размеры, герметичность</em></span></li><li><span>CLI-нарезка в OrcaSlicer или PrusaSlicer<em>сверить флаги на установленной версии</em></span></li><li><span>Отправка G-кода через Moonraker или OctoPrint<em>один принтер</em></span></li></ul></div><div class="phase p2 rv"><div class="ph">Фаза 2</div><h3>Ядро: подбор параметров</h3><ul><li><span>Правила по цели и материалу<em>стартовые значения</em></span></li><li><span>Анализ нависаний и тонких стенок<em>свой модуль</em></span></li><li><span>Цикл «слайсер оценивает — LLM корректирует»<em>по идее CMU</em></span></li><li><span>Проверка G-кода<em>границы стола, температуры</em></span></li></ul></div><div class="phase p3 rv"><div class="ph">Фаза 3</div><h3>Парк, фото и бонусы</h3><ul><li><span>Выбор принтера из парка<em>стол, материал, сопло</em></span></li><li><span>Фото и текст → требования<em>мультимодальная LLM</em></span></li><li><span>Мониторинг через Obico<em>остановка при сбое</em></span></li><li><span>5D-рекомендации и генерация моделей<em>по времени хакатона</em></span></li></ul></div></div></section>
+<section class="blk" id="gaps"><div class="sh rv"><div class="eyebrow">Выводы</div><h2>Пробелы рынка и что делать нам</h2></div><div class="panel-art"><p>Инфраструктура (библиотеки геометрии, API принтеров, слайсеры в CLI, MCP SDK) готова и зрела, а слабее всего решён именно то, что требует кейс: средний итог в категории «Подбор параметров» — 2,31 из 5, ниже всех остальных категорий, включая 5D (2,40).</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Категория</th>
+<th>Лучший компонент</th>
+<th>Итог (0–5)</th>
+<th>Средний по категории</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Слайсеры и API принтеров</td>
+<td>Moonraker API, OctoPrint REST API</td>
+<td>4,25</td>
+<td>3,89</td>
+</tr>
+<tr>
+<td>Анализ и починка STL</td>
+<td>trimesh</td>
+<td>4,25</td>
+<td>3,60</td>
+</tr>
+<tr>
+<td>Каркас сервера</td>
+<td>MCP SDK (Python)</td>
+<td>3,95</td>
+<td>3,95</td>
+</tr>
+<tr>
+<td>Генерация моделей</td>
+<td>CadQuery + LLM</td>
+<td>3,70</td>
+<td>3,15</td>
+</tr>
+<tr>
+<td>Управление принтерами и слайсерами (MCP)</td>
+<td>mcp-3D-printer-server</td>
+<td>3,60</td>
+<td>3,04</td>
+</tr>
+<tr>
+<td>Управление парком</td>
+<td>SimplyPrint</td>
+<td>3,45</td>
+<td>2,65</td>
+</tr>
+<tr>
+<td>Мониторинг и дефекты</td>
+<td>Obico</td>
+<td>3,40</td>
+<td>2,70</td>
+</tr>
+<tr>
+<td>5D и непланарная печать</td>
+<td>S4 Slicer</td>
+<td>2,90</td>
+<td>2,40</td>
+</tr>
+<tr>
+<td>Подбор параметров</td>
+<td>CMU: LLM как эксперт по настройке</td>
+<td>2,75</td>
+<td>2,31</td>
+</tr>
+</tbody>
+</table></div>
+<p>Оценки — из раздела «Сравнение» (35 компонентов, пять критериев с пересчитываемыми весами). Они субъективны, и низкий итог может быть у полезной идеи: работа CMU получила 2,75 только из-за отсутствия кода, по смыслу она самая ценная.</p>
+<p><strong>Что брать готовым.</strong> MCP SDK для каркаса, trimesh для анализа STL, OrcaSlicer или PrusaSlicer в консольном режиме для нарезки, Moonraker и OctoPrint API для управления, Obico для мониторинга. mcp-3D-printer-server и Kiln полезны как образцы архитектуры, но у обоих копилефт-лицензии.</p>
+<p><strong>Что писать самим.</strong> Расчёт нависаний и тонких стенок; модуль подбора параметров по цели (правила плюс цикл «слайсер оценивает — LLM корректирует» по идее CMU); анализ фото мультимодальной LLM в требования к детали; выбор принтера из парка по размеру стола, материалу и соплу; проверку G-кода (границы стола, температуры, аномалии); 5D-рекомендацию как аналитику (угол наклона, экономия поддержек), а не как полный 5-осевой G-код.</p>
+<p><strong>Риски лицензий.</strong> Kiln (AGPL-3.0), mcp-3D-printer-server (GPL-2.0), pymeshfix (AGPL/GPL) и FullControl (GPLv3) обязывают открыть код при встраивании; для хакатона это обычно не проблема, для коммерческого продукта — да.</p>
+<p><strong>Что ещё нужно проверить.</strong> Полную документацию Kiln (kiln3d.com/docs): как выбираются параметры и есть ли анализ кадров; флаги консольного режима OrcaSlicer и PrusaSlicer на установленной версии; есть ли код у работ CMU; цены SimplyPrint и условия Meshy.</p></div></section>
+<section class="blk" id="sources"><div class="sh rv"><div class="eyebrow">Источники</div><h2>Что было открыто при сборе</h2></div><p>Страницы, которые были открыты при сборе (данные на 20 октября 2026). Для некоторых часть текста была доступна только как пересказ страницы, поэтому точные числа из статей стоит сверять с оригиналом.</p>
+<input type="search" id="srcQ" placeholder="Фильтр источников" aria-label="Фильтр источников" style="width:100%;max-width:420px"><ul class="src" id="srcList"><li><a href="https://arxiv.org/pdf/2408.14307" target="_blank" rel="noopener noreferrer">LLM-3D Print: Large Language Models To Monitor and Control 3D Printing</a></li><li><a href="https://arxiv.org/html/2603.22118v1" target="_blank" rel="noopener noreferrer">Programming Manufacturing Robots with Imperfect AI: LLMs as Tuning Experts for FDM Print Configuration Selection</a></li><li><a href="https://www.fabbaloo.com/news/cmu-researchers-use-ai-to-autonomously-manage-3d-printing-workflows-on-fff-systems" target="_blank" rel="noopener noreferrer">CMU Researchers Use AI to Autonomously Manage 3D Printing Workflows on FFF Systems (Fabbaloo)</a></li><li><a href="https://arxiv.org/pdf/2404.15061" target="_blank" rel="noopener noreferrer">Neural Slicer for Multi-Axis 3D Printing</a></li><li><a href="https://arxiv.org/html/2508.00843v1" target="_blank" rel="noopener noreferrer">Generative AI for CAD Automation (arXiv 2508.00843)</a></li><li><a href="https://mcpservers.org/ru/servers/DMontgomery40/mcp-3D-printer-server" target="_blank" rel="noopener noreferrer">mcp-3D-printer-server</a></li><li><a href="https://cdn.jsdelivr.net/gh/AuraFriday/cura_mcp@main/README.md" target="_blank" rel="noopener noreferrer">Cura MCP</a></li><li><a href="https://glama.ai/mcp/servers/Noosbai/PrusaMCP" target="_blank" rel="noopener noreferrer">PrusaMCP</a></li><li><a href="https://github.com/codeofaxel/Kiln" target="_blank" rel="noopener noreferrer">Kiln</a></li><li><a href="https://github.com/pfrankov/slicer-copilot" target="_blank" rel="noopener noreferrer">slicer-copilot</a></li><li><a href="https://hcie.csail.mit.edu/research/slicehub/slicehub.html" target="_blank" rel="noopener noreferrer">SliceHub</a></li><li><a href="https://pypi.org/project/sliceoptim" target="_blank" rel="noopener noreferrer">sliceoptim</a></li><li><a href="https://askthenozzle.com/blog/ai-3d-printing-assistant-chat-what-actually-works-and-whats-just-hype/" target="_blank" rel="noopener noreferrer">Ask The Nozzle</a></li><li><a href="https://slicefoundry.com/" target="_blank" rel="noopener noreferrer">Slice Foundry</a></li><li><a href="https://www.fabflow.app/labs/ai-fdm-slicer" target="_blank" rel="noopener noreferrer">FabFlow AI FDM Slicer</a></li><li><a href="https://www.obico.io/blog/ai-failure-detection-in-3d-printing/" target="_blank" rel="noopener noreferrer">Obico: AI failure detection</a></li><li><a href="https://www.obico.io/blog/tags/ai-spaghetti-detection/" target="_blank" rel="noopener noreferrer">Obico: AI spaghetti detection</a></li><li><a href="https://simplyprint.io/print-farms" target="_blank" rel="noopener noreferrer">SimplyPrint: print farms</a></li><li><a href="https://simplyprint.io/features/print-queue" target="_blank" rel="noopener noreferrer">SimplyPrint: print queue</a></li><li><a href="https://simplyprint.io/alternatives" target="_blank" rel="noopener noreferrer">SimplyPrint: alternatives</a></li><li><a href="https://3dprinting.com/software-guides/3d-printer-host-software/" target="_blank" rel="noopener noreferrer">3dprinting.com: host software</a></li><li><a href="https://www.pistack.xyz/posts/2026-06-06-self-hosted-3d-printer-farm-management-octofarm-obico-octoprint/" target="_blank" rel="noopener noreferrer">Self-hosted farm management: OctoFarm vs Obico vs OctoPrint</a></li><li><a href="https://forum.bambulab.com/t/software-that-allows-multiple-users-to-control-multiple-printers/25432" target="_blank" rel="noopener noreferrer">Bambu Lab forum: multiple printers</a></li><li><a href="https://www.fabbaloo.com/news/ai-agent-3d-printing-project-shows-automated-printer-control" target="_blank" rel="noopener noreferrer">AI agent 3D printing project (Fabbaloo)</a></li><li><a href="https://www.meshy.ai/3d-printing" target="_blank" rel="noopener noreferrer">Meshy: 3D printing</a></li><li><a href="https://filamentfeed.com/article/meshy-ai-text-to-3d-makerworld-june-2026" target="_blank" rel="noopener noreferrer">Meshy × MakerWorld (FilamentFeed)</a></li><li><a href="https://3dprinting.com/software-guides/ai-3d-model-generators/" target="_blank" rel="noopener noreferrer">Best AI 3D Model Generators for 3D Printing (3dprinting.com)</a></li><li><a href="https://printpal.io/resources/cad-agent-but-the-prompts-double" target="_blank" rel="noopener noreferrer">PrintPal CAD agent</a></li><li><a href="https://github.com/roberto-ceraolo/text-2-cad" target="_blank" rel="noopener noreferrer">text-2-cad</a></li><li><a href="https://www.getleo.ai/blog/open-source-text-to-cad-tools-free" target="_blank" rel="noopener noreferrer">Open-source text-to-CAD tools (Leo AI)</a></li><li><a href="https://github.com/cplanow/Canterbury-Press/blob/main/docs/research/ai-3d-printing-design-guide.md" target="_blank" rel="noopener noreferrer">Canterbury-Press: AI 3D printing design guide</a></li><li><a href="https://zenml.io/llmops-database/llm-powered-3d-model-generation-for-3d-printing" target="_blank" rel="noopener noreferrer">DesignBench (ZenML)</a></li><li><a href="https://pypi.org/project/trimesh/" target="_blank" rel="noopener noreferrer">trimesh</a></li><li><a href="https://pypi.org/project/pymeshfix/" target="_blank" rel="noopener noreferrer">pymeshfix</a></li><li><a href="https://pypi.org/project/numpy-stl/" target="_blank" rel="noopener noreferrer">numpy-stl</a></li><li><a href="https://pypi.org/project/fullcontrol/" target="_blank" rel="noopener noreferrer">FullControl GCode</a></li><li><a href="https://www.orcaslicer.com/wiki/index.html" target="_blank" rel="noopener noreferrer">OrcaSlicer wiki</a></li><li><a href="https://moonraker.readthedocs.io/en/latest/web_api/" target="_blank" rel="noopener noreferrer">Moonraker Web API</a></li><li><a href="https://docs.octoprint.org/en/main/api/" target="_blank" rel="noopener noreferrer">OctoPrint REST API</a></li><li><a href="https://www.fabbaloo.com/news/implications-of-the-s4-slicer-nonplanar-3d-printing-for-everyone" target="_blank" rel="noopener noreferrer">S4 Slicer (Fabbaloo)</a></li><li><a href="https://all3dp.com/4/open-source-5-axis-prusa-upgrade/" target="_blank" rel="noopener noreferrer">Open5x (All3DP)</a></li><li><a href="https://github.com/DrEricEbert/Slic3r_NonPlanar_Slicing" target="_blank" rel="noopener noreferrer">Slic3r NonPlanar Slicing</a></li><li><a href="https://www.3printr.com/slicer-version-for-non-planar-3d-printing-released-0370841/" target="_blank" rel="noopener noreferrer">Non-planar PrusaSlicer fork (3Printr)</a></li><li><a href="https://polen.itu.edu.tr/items/a42ffe7d-2bed-458a-8284-30359a23f8ab" target="_blank" rel="noopener noreferrer">Uni-slice (ITU)</a></li><li><a href="https://foil.zone/t/3d-printing-our-propellers-using-conformal-slicing-on-a-5-axis-3d-printer/17085" target="_blank" rel="noopener noreferrer">Conformal slicing on a 5-axis printer (FOIL.zone)</a></li><li><a href="https://3dprintingindustry.com/news/smooth-operation-eliminates-fdm-stair-stepping-in-university-of-hamburg-study-160826/" target="_blank" rel="noopener noreferrer">University of Hamburg nonplanar slicing (3DPI)</a></li></ul></section>
+</main>
+<footer><span>Данные на 20 октября 2026. Оценки субъективны.</span><span>Статичный сайт: index.html, style.css, app.js, data.js</span></footer>
+<script src="data.js"></script><script src="app.js"></script></body></html>
