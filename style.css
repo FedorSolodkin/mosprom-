@@ -329,3 +329,8 @@ details.catdet>summary,details>summary{cursor:pointer}
 .cr .cbar b{display:block;height:100%;background:var(--cyan)}
 .cr em{font:600 12px var(--mono);font-style:normal;text-align:right}
 @media(max-width:560px){.cr{grid-template-columns:104px 1fr 16px}.sd{padding:14px}}
+
+table.dt{min-width:980px;font-size:13.5px}
+table.dt td{min-width:120px}table.dt td:nth-child(1){min-width:30px}
+table.dt td.num{font:600 14px var(--mono);white-space:nowrap}table.dt td.num small{color:var(--dim);font-weight:400}
+table.dt tr.tp td{background:rgba(46,230,166,.04)}
