@@ -26,21 +26,6 @@
   var cats = []; D.comps.forEach(function (c) { if (cats.indexOf(c.c) < 0) cats.push(c.c); });
 
   /* ---------- compare ---------- */
-  function buildWeights() {
-    $("#wgrid").innerHTML = D.crit.map(function (c, i) {
-      return '<div class="wi"><label for="w' + i + '" title="' + esc(c.desc) + '"><span>' + esc(c.name) + '</span><output id="wo' + i + '">' + Math.round(state.w[i] * 100) + '%</output></label><input type="range" id="w' + i + '" min="0" max="1" step="0.05" value="' + state.w[i] + '"></div>';
-    }).join("");
-    D.crit.forEach(function (c, i) {
-      $("#w" + i).addEventListener("input", function (e) { state.w[i] = +e.target.value; $("#wo" + i).textContent = Math.round(state.w[i] * 100) + "%"; render(); });
-    });
-    $("#thrTake").value = state.thr.take; $("#thrIdea").value = state.thr.idea;
-  }
-  $("#thrTake").addEventListener("input", function (e) { state.thr.take = +e.target.value; render(); });
-  $("#thrIdea").addEventListener("input", function (e) { state.thr.idea = +e.target.value; render(); });
-  $("#resetW").addEventListener("click", function () { state.w = D.crit.map(function (c) { return c.w; }); state.thr = { take: D.thr.take, idea: D.thr.idea }; buildWeights(); render(); });
-  $("#rankAll").addEventListener("click", function () { state.all = !state.all; render(); });
-
-
   function renderCats(rows) {
     var avgs = cats.map(function (c) { var rs = rows.filter(function (r) { return r.c === c; }); return rs.reduce(function (a, r) { return a + r.t; }, 0) / rs.length; });
     var minAvg = Math.min.apply(null, avgs);
@@ -53,16 +38,8 @@
       return '<div class="cat-card' + (avgs[i] === minAvg ? " weak" : "") + '"><h4>' + esc(c) + '</h4><div class="avg">' + fmt(avgs[i]) + ' <small>средний, ' + total + ' шт.</small></div><ol class="top3">' + top + '</ol></div>';
     }).join("");
   }
-  function renderRank(rows) {
-    var list = rows.slice().sort(function (a, b) { return b.t - a.t || a.n.localeCompare(b.n); });
-    var shown = state.all ? list : list.slice(0, 12);
-    $("#rank").innerHTML = shown.map(function (r) {
-      return '<div class="rrow" title="' + esc(r.c) + '"><div class="rn">' + esc(r.n) + '</div><div class="rb"><i class="i-' + r.v[1] + '" style="width:' + r.t / 5 * 100 + '%"></i></div><div class="rval">' + fmt(r.t) + "</div></div>";
-    }).join("");
-    $("#rankAll").textContent = state.all ? "Показать только топ-12" : "Показать все " + list.length;
-  }
-  function render() { var rows = enrich(); renderCats(rows); renderRank(rows); }
-  buildWeights(); render();
+  function render() { renderCats(enrich()); }
+  render();
 
   /* ---------- sources filter ---------- */
   $("#srcQ").addEventListener("input", function (e) {
