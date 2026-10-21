@@ -334,3 +334,7 @@ table.dt{min-width:980px;font-size:13.5px}
 table.dt td{min-width:120px}table.dt td:nth-child(1){min-width:30px}
 table.dt td.num{font:600 14px var(--mono);white-space:nowrap}table.dt td.num small{color:var(--dim);font-weight:400}
 table.dt tr.tp td{background:rgba(46,230,166,.04)}
+
+.stage .total{margin:6px 0 10px;color:var(--text);font-size:14px}.stage .total b{color:var(--teal);font:700 15px var(--mono)}
+table.dt td p{margin:0 0 6px;font-size:13.5px}table.dt td p:last-child{margin:0}table.dt td p b{color:var(--teal);font-weight:600}
+table.dt td:nth-child(3){min-width:380px}
