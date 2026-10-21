@@ -38,7 +38,7 @@
       return '<div class="cat-card' + (avgs[i] === minAvg ? " weak" : "") + '"><h4>' + esc(c) + '</h4><div class="avg">' + fmt(avgs[i]) + ' <small>средний, ' + total + ' шт.</small></div><ol class="top3">' + top + '</ol></div>';
     }).join("");
   }
-  function render() { renderCats(enrich()); }
+  function render() { if (!$("#cats").children.length) renderCats(enrich()); }
   render();
 
   /* ---------- sources filter ---------- */
