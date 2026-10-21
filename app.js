@@ -25,53 +25,6 @@
   }
   var cats = []; D.comps.forEach(function (c) { if (cats.indexOf(c.c) < 0) cats.push(c.c); });
 
-  /* ---------- stats ---------- */
-  var nSrc = $$("#srcList li").length;
-  $("#stats").innerHTML = [[D.comps.length, "компонентов"], [D.builds.length, "цельных сборок"], [cats.length, "категорий"], [nSrc, "источников"]]
-    .map(function (a) { return '<div class="stat"><b>' + a[0] + "</b><span>" + a[1] + "</span></div>"; }).join("");
-
-  /* ---------- takeaways (computed at default weights) ---------- */
-  function baseRows() { return D.comps.map(function (c) { var sw = D.crit.reduce(function (a, x) { return a + x.w; }, 0); var t = c.s.reduce(function (a, s, i) { return a + s * D.crit[i].w; }, 0) / sw; return { n: c.n, c: c.c, t: Math.round(t * 100) / 100 }; }); }
-  (function () {
-    var rows = baseRows();
-    function avg(cat) { var r = rows.filter(function (x) { return x.c === cat; }); return r.reduce(function (a, x) { return a + x.t; }, 0) / r.length; }
-    var infra = ["Слайсеры и API принтеров", "Анализ и починка STL", "Каркас сервера"];
-    var infraAvg = infra.reduce(function (a, c) { return a + avg(c); }, 0) / infra.length;
-    $("#tkInfra").textContent = fmt(infraAvg);
-    $("#tkGap").textContent = fmt(avg("Подбор параметров"));
-    var cov = D.builds.map(function (b) { return { n: b.n, v: b.v.reduce(function (a, x) { return a + x; }, 0) / b.v.length }; }).sort(function (a, b) { return b.v - a.v; });
-    $("#tkRival").textContent = Math.round(cov[0].v * 100) + "%";
-    $("#tkRivalName").textContent = cov[0].n;
-    $("#tkRivalNext").textContent = Math.round(cov[1].v * 100) + "%";
-  })();
-
-  /* ---------- wiki tabs ---------- */
-  var tabs = $$(".tab"), panels = $$(".panel-art");
-  var CATMAP = { mcp: "Управление принтерами и слайсерами (MCP)", params: "Подбор параметров", monitor: "Мониторинг и дефекты", fleet: "Управление парком", gen: "Генерация моделей", stl: "Анализ и починка STL", slicers: "Слайсеры и API принтеров", "5d": "5D и непланарная печать" };
-  function openTab(slug, focus) {
-    tabs.forEach(function (t) { var on = t.dataset.slug === slug; t.setAttribute("aria-selected", on); t.tabIndex = on ? 0 : -1; if (on && focus) t.focus(); });
-    panels.forEach(function (p) { p.hidden = p.dataset.slug !== slug; });
-  }
-  tabs.forEach(function (t, i) {
-    t.addEventListener("click", function () { openTab(t.dataset.slug); history.replaceState(null, "", "#wiki-" + t.dataset.slug); });
-    t.addEventListener("keydown", function (e) {
-      var j = null;
-      if (e.key === "ArrowDown" || e.key === "ArrowRight") j = (i + 1) % tabs.length;
-      if (e.key === "ArrowUp" || e.key === "ArrowLeft") j = (i - 1 + tabs.length) % tabs.length;
-      if (j != null) { e.preventDefault(); openTab(tabs[j].dataset.slug, true); }
-    });
-  });
-  function route() {
-    var h = location.hash.replace("#", "");
-    if (h.indexOf("wiki-") === 0) {
-      var slug = h.slice(5);
-      if (tabs.some(function (t) { return t.dataset.slug === slug; })) { openTab(slug); var w = $("#wiki"); if (w) w.scrollIntoView(); }
-    }
-  }
-  openTab(tabs[0].dataset.slug);
-  window.addEventListener("hashchange", route);
-  route();
-
   /* ---------- builds ---------- */
   var SYM = function (v) { return v === 1 ? '<span class="cell c1" title="есть">●</span>' : v === 0.5 ? '<span class="cell c05" title="частично">½</span>' : '<span class="cell c0" title="нет">○</span>'; };
   $("#bth").innerHTML = "<th scope='col'>Решение</th>" + D.funcs.map(function (f) { return '<th scope="col" style="white-space:normal;min-width:70px">' + esc(f) + "</th>"; }).join("") + "<th scope='col'>Покрытие</th>";
@@ -195,8 +148,4 @@
     $$(".rv").forEach(function (el) { rv.observe(el); });
   } else { $$(".rv").forEach(function (el) { el.classList.add("in"); }); }
 
-  /* pipeline links open wiki tabs */
-  $$("a[data-wiki]").forEach(function (a) {
-    a.addEventListener("click", function (e) { e.preventDefault(); openTab(a.dataset.wiki); history.replaceState(null, "", "#wiki-" + a.dataset.wiki); $("#wiki").scrollIntoView(); });
-  });
 })();
